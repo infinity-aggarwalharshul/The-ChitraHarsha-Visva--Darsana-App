@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChitraHarsha ViśvaDarśana - Prototype</title>
+
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!--
+    REMOVED: React, ReactDOM, and Lucide-React scripts.
+    Reason: These scripts were causing console errors (reading 'forwardRef')
+    and were not being used by the application, which uses vanilla JavaScript
+    and inline SVGs for icons. Removing them fixes the error and has no
+    impact on functionality.
+    -->
+
+    <!-- Configure Tailwind for Dark Mode and Custom Fonts -->
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+            animation: {
+              "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "gradient-x": "gradient-x 15s ease infinite",
+            },
+            keyframes: {
+              "gradient-x": {
+                "0%, 100%": {
+                  "background-size": "200% 200%",
+                  "background-position": "left center",
+                },
+                "50%": {
+                  "background-size": "200% 200%",
+                  "background-position": "right center",
+                },
+              },
+            },
+            boxShadow: {
+              "glow-indigo": "0 0 15px rgba(129, 140, 248, 0.6)",
+              "glow-purple": "0 0 20px rgba(192, 132, 252, 0.7)",
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        scroll-behavior: smooth;
+      }
+
+      /* Hide all pages by default. JS will show the active one. */
+      .page-content {
+        display: none;
+      }
+
+      /* Futuristic gradient text */
+      .gradient-text {
+        background: linear-gradient(to right, #a855f7, #6366f1, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      /* Glowing button effect */
+      .btn-glow {
+        box-shadow: 0 0 5px theme("colors.indigo.500"),
+          0 0 10px theme("colors.indigo.700");
+        transition: all 0.3s ease-in-out;
+      }
+      .btn-glow:hover {
+        box-shadow: 0 0 10px theme("colors.indigo.400"),
+          0 0 20px theme("colors.indigo.600");
+        transform: translateY(-2px);
+      }
+
+      /* Styles for the multi-step form */
+      .form-step {
+        display: none;
+      }
+      .form-step.active {
+        display: block;
+      }
+
+      /* Styles for login tabs */
+      .login-tab-content {
+        display: none;
+      }
+      .login-tab-content.active {
+        display: block;
+      }
+      .login-tab.active {
+        border-bottom-color: theme("colors.indigo.500");
+        color: theme("colors.indigo.400");
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-950 text-gray-200">
+    <!-- Auto-Updater Toast -->
+    <div
+      id="auto-updater-toast"
+      class="fixed top-5 right-5 bg-green-600 text-white p-3 rounded-lg shadow-lg z-50 hidden animate-pulse"
+    >
+      <div class="flex items-center gap-2">
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m-15.357-2a8.001 8.001 0 0015.357 2m0 0H15"
+          ></path>
+        </svg>
+        <span>Auto-Update: Platform v1.2.2 installed.</span>
+      </div>
+    </div>
+
+    <!-- AI Chatbot Button -->
+    <button
+      onclick="toggleChatbot()"
+      class="fixed bottom-5 right-5 bg-indigo-600 p-4 rounded-full shadow-glow-indigo btn-glow z-40"
+    >
+      <svg
+        class="w-6 h-6 text-white"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        ></path>
+      </svg>
+    </button>
+
+    <!-- AI Chatbot Modal -->
+    <div
+      id="chatbot-modal"
+      class="fixed bottom-20 right-5 w-full max-w-sm h-96 bg-gray-900 border border-indigo-500/30 rounded-lg shadow-glow-purple z-50 hidden flex-col"
+    >
+      <div
+        class="flex justify-between items-center p-3 bg-gray-800 rounded-t-lg"
+      >
+        <h3 class="text-lg font-semibold gradient-text">
+          Interactive AI Session
+        </h3>
+        <button
+          onclick="toggleChatbot()"
+          class="text-gray-400 hover:text-white"
+        >
+          &times;
+        </button>
+      </div>
+      <div id="chatbot-messages" class="flex-1 p-4 overflow-y-auto space-y-3">
+        <div class="p-2 bg-indigo-600 rounded-lg max-w-xs text-white">
+          Hello! I am the ViśvaDarśana AI. How can I assist you with this
+          prototype?
+        </div>
+        <!-- Messages will be appended here -->
+      </div>
+      <div class="p-3 border-t border-indigo-500/30">
+        <div class="flex gap-2">
+          <input
+            id="chatbot-input"
+            type="text"
+            class="flex-1 bg-gray-800 border border-gray-700 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Simulate NLP chat..."
+          />
+          <button
+            onclick="sendChatMessage()"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-500"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header
+      class="fixed top-0 left-0 right-0 bg-gray-950/80 backdrop-blur-md border-b border-indigo-500/20 z-30"
+    >
+      <nav
+        class="container mx-auto px-6 py-4 flex justify-between items-center"
+      >
+        <!-- Logo -->
+        <a
+          href="#"
+          onclick="navigateTo('home')"
+          class="text-2xl font-bold gradient-text"
+        >
+          ChitraHarsha ViśvaDarśana
+        </a>
+
+        <!-- Desktop Nav -->
+        <div class="hidden md:flex items-center space-x-6">
+          <a
+            href="#"
+            onclick="navigateTo('home')"
+            class="text-gray-300 hover:text-indigo-400"
+            >Home</a
+          >
+          <a
+            href="#"
+            onclick="navigateTo('workspace')"
+            class="text-gray-300 hover:text-indigo-400"
+            >Workspace</a
+          >
+          <a
+            href="#"
+            onclick="navigateTo('blogs')"
+            class="text-gray-300 hover:text-indigo-400"
+            >Blogs</a
+          >
+          <a
+            href="#"
+            onclick="navigateTo('download')"
+            class="text-gray-300 hover:text-indigo-400"
+            >Download Client</a
+          >
+          <a
+            href="#"
+            onclick="navigateTo('freemium')"
+            class="text-gray-300 hover:text-indigo-400"
+            >Pricing</a
+          >
+          <a
+            href="#"
+            onclick="navigateTo('contact')"
+            class="text-gray-300 hover:text-indigo-400"
+            >Contact Us</a
+          >
+
+          <!-- Dynamic Login/Dashboard Button -->
+          <a
+            href="#"
+            id="nav-login-btn"
+            onclick="navigateTo('login')"
+            class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg shadow-glow-indigo btn-glow text-sm"
+          >
+            User Login
+          </a>
+          <a
+            href="#"
+            id="nav-dashboard-btn"
+            onclick="navigateTo('dashboard')"
+            class="hidden bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg shadow-glow-purple btn-glow text-sm"
+          >
+            Admin Dashboard
+          </a>
+        </div>
+
+        <!-- Mobile Nav Button -->
+        <button id="mobile-menu-btn" class="md:hidden text-gray-300">
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16m-7 6h7"
+            ></path>
+          </svg>
+        </button>
+      </nav>
+
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 space-y-2">
+        <a
+          href="#"
+          onclick="navigateTo('home'); toggleMobileMenu();"
+          class="block text-gray-300 hover:text-indigo-400"
+          >Home</a
+        >
+        <a
+          href="#"
+          onclick="navigateTo('workspace'); toggleMobileMenu();"
+          class="block text-gray-300 hover:text-indigo-400"
+          >Workspace</a
+        >
+        <a
+          href="#"
+          onclick="navigateTo('blogs'); toggleMobileMenu();"
+          class="block text-gray-300 hover:text-indigo-400"
+          >Blogs</a
+        >
+        <a
+          href="#"
+          onclick="navigateTo('download'); toggleMobileMenu();"
+          class="block text-gray-300 hover:text-indigo-400"
+          >Download Client</a
+        >
+        <a
+          href="#"
+          onclick="navigateTo('freemium'); toggleMobileMenu();"
+          class="block text-gray-300 hover:text-indigo-400"
+          >Pricing</a
+        >
+        <a
+          href="#"
+          onclick="navigateTo('contact'); toggleMobileMenu();"
+          class="block text-gray-300 hover:text-indigo-400"
+          >Contact Us</a
+        >
+
+        <a
+          href="#"
+          id="mobile-nav-login-btn"
+          onclick="navigateTo('login'); toggleMobileMenu();"
+          class="block bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg shadow-glow-indigo btn-glow text-sm text-center"
+        >
+          User Login
+        </a>
+        <a
+          href="#"
+          id="mobile-nav-dashboard-btn"
+          onclick="navigateTo('dashboard'); toggleMobileMenu();"
+          class="hidden bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg shadow-glow-purple btn-glow text-sm text-center"
+        >
+          Admin Dashboard
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="pt-20">
+      <!-- === HOME PAGE === -->
+      <div id="page-home" class="page-content">
+        <!-- Hero Section -->
+        <section
+          class="relative h-[80vh] flex items-center justify-center text-center overflow-hidden px-4"
+        >
+          <!-- Background visual effect -->
+          <div
+            class="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-950 to-indigo-950/30 z-0"
+          ></div>
+          <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse-slow"
+          ></div>
+          <div
+            class="absolute top-1/3 left-1/4 w-80 h-80 bg-indigo-600 rounded-full blur-3xl opacity-20 animate-pulse-slow animation-delay-4000"
+          ></div>
+
+          <div class="relative z-10">
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6">
+              <span class="gradient-text">ChitraHarsha ViśvaDarśana</span>
+            </h1>
+            <p class="text-lg md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+              Pioneering AI-Driven Innovation. A "Made in India" ecosystem for
+              corporate management, content creation, and quantum-ready finance.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="#"
+                onclick="navigateTo('login')"
+                class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-lg text-lg font-semibold shadow-glow-indigo btn-glow"
+              >
+                Get Started
+              </a>
+              <a
+                href="#"
+                onclick="navigateTo('blogs')"
+                class="bg-gray-700 hover:bg-gray-600 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-all"
+              >
+                Learn More
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="py-20 bg-gray-950 px-4">
+          <div class="container mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12 gradient-text">
+              A Unified Digital Universe
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <!-- Feature 1: AI Core -->
+              <div
+                class="bg-gray-900 p-6 rounded-lg border border-indigo-500/20 shadow-glow-indigo/30"
+              >
+                <h3 class="text-xl font-semibold mb-3 text-indigo-400">
+                  AI & NLP at the Core
+                </h3>
+                <p class="text-gray-400">
+                  Leveraging the latest LLMs and NLP models to automate
+                  workflows, power virtual interviews, and provide real-time
+                  interactive AI sessions.
+                </p>
+              </div>
+              <!-- Feature 2: Quantum Security -->
+              <div
+                class="bg-gray-900 p-6 rounded-lg border border-indigo-500/20 shadow-glow-indigo/30"
+              >
+                <h3 class="text-xl font-semibold mb-3 text-indigo-400">
+                  Quantum-Ready Security
+                </h3>
+                <p class="text-gray-400">
+                  Built on a private blockchain with quantum-level encryption,
+                  dark web monitoring, and full compliance with India's DPDP
+                  Act.
+                </p>
+              </div>
+              <!-- Feature 3: Financial Ecosystem -->
+              <div
+                class="bg-gray-900 p-6 rounded-lg border border-indigo-500/20 shadow-glow-indigo/30"
+              >
+                <h3 class="text-xl font-semibold mb-3 text-indigo-400">
+                  Next-Gen FinTech
+                </h3>
+                <p class="text-gray-400">
+                  Introducing
+                  <span class="font-bold">The ChitraHarsha VPK Pay (UPI)</span>
+                  and the
+                  <span class="font-bold"
+                    >ChitraHarsha Cryptocurrency (CHC)</span
+                  >
+                  for a seamless financial ecosystem.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- === LOGIN / REGISTRATION PAGE === -->
+      <div id="page-login" class="page-content min-h-screen py-16 px-4">
+        <div class="container mx-auto max-w-3xl">
+          <div
+            class="bg-gray-900 p-8 rounded-lg shadow-glow-purple border border-purple-500/20"
+          >
+            <h2 class="text-3xl font-bold text-center mb-8 gradient-text">
+              Platform Access
+            </h2>
+
+            <!-- Login Type Tabs -->
+            <div class="flex border-b border-gray-700 mb-6">
+              <button
+                class="login-tab flex-1 py-3 text-gray-400 hover:text-white transition-all text-sm sm:text-base"
+                onclick="switchLoginTab(event, 'tab-register')"
+              >
+                New User Registration
+              </button>
+              <button
+                class="login-tab flex-1 py-3 text-gray-400 hover:text-white transition-all text-sm sm:text-base"
+                onclick="switchLoginTab(event, 'tab-company-login')"
+              >
+                Company Login
+              </button>
+              <button
+                class="login-tab flex-1 py-3 text-gray-400 hover:text-white transition-all text-sm sm:text-base"
+                onclick="switchLoginTab(event, 'tab-admin-login')"
+              >
+                Admin / Founder
+              </button>
+            </div>
+
+            <!-- TAB 1: New User Registration -->
+            <div id="tab-register" class="login-tab-content">
+              <h3 class="text-xl font-semibold mb-4 text-center">
+                New User Registration
+              </h3>
+              <form id="registration-form" class="space-y-4">
+                <!-- Step 1: Account Info -->
+                <div id="step-1" class="form-step active space-y-4">
+                  <div>
+                    <label
+                      for="reg-username"
+                      class="block text-sm font-medium text-gray-300"
+                      >Username (Email/Mobile)</label
+                    >
+                    <input
+                      type="text"
+                      id="reg-username"
+                      class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="reg-password"
+                      class="block text-sm font-medium text-gray-300"
+                      >Create Password (min 8 characters)</label
+                    >
+                    <input
+                      type="password"
+                      id="reg-password"
+                      class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="reg-job-role"
+                      class="block text-sm font-medium text-gray-300"
+                      >Job Role Category</label
+                    >
+                    <select
+                      id="reg-job-role"
+                      class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option>Select Department...</option>
+                      <option>HR Department</option>
+                      <option>Finance</option>
+                      <option>CEO Department</option>
+                      <option>Brainstorming</option>
+                      <option>Data Analyst</option>
+                      <option>Data Scientist</option>
+                      <option>Researcher</option>
+                      <option>Interior Designer</option>
+                      <option>Transport</option>
+                      <option>Content Creator</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onclick="nextStep(2)"
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold btn-glow"
+                  >
+                    Next: Personal Details
+                  </button>
+                </div>
+
+                <!-- Step 2: Personal Details -->
+                <div id="step-2" class="form-step space-y-4">
+                  <div>
+                    <label
+                      for="reg-address"
+                      class="block text-sm font-medium text-gray-300"
+                      >Address / Street</label
+                    >
+                    <input
+                      type="text"
+                      id="reg-address"
+                      class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label
+                        for="reg-city"
+                        class="block text-sm font-medium text-gray-300"
+                        >City</label
+                      >
+                      <input
+                        type="text"
+                        id="reg-city"
+                        class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label
+                        for="reg-state"
+                        class="block text-sm font-medium text-gray-300"
+                        >State</label
+                      >
+                      <input
+                        type="text"
+                        id="reg-state"
+                        class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label
+                        for="reg-pincode"
+                        class="block text-sm font-medium text-gray-300"
+                        >Pin Code</label
+                      >
+                      <input
+                        type="text"
+                        id="reg-pincode"
+                        class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      for="reg-id-proof"
+                      class="block text-sm font-medium text-gray-300"
+                      >ID Proof (Aadhaar / PAN Number)</label
+                    >
+                    <input
+                      type="text"
+                      id="reg-id-proof"
+                      class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div class="flex gap-4">
+                    <button
+                      type="button"
+                      onclick="prevStep(1)"
+                      class="w-1/2 bg-gray-600 hover:bg-gray-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition-all"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="button"
+                      onclick="nextStep(3)"
+                      class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold btn-glow"
+                    >
+                      Next: Bank Details
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Step 3: Bank Details -->
+                <div id="step-3" class="form-step space-y-4">
+                  <div>
+                    <label
+                      for="reg-bank-account"
+                      class="block text-sm font-medium text-gray-300"
+                      >Bank Account Number</label
+                    >
+                    <input
+                      type="text"
+                      id="reg-bank-account"
+                      class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="reg-bank-name"
+                      class="block text-sm font-medium text-gray-300"
+                      >Bank Name</label
+                    >
+                    <input
+                      type="text"
+                      id="reg-bank-name"
+                      class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="reg-ifsc"
+                      class="block text-sm font-medium text-gray-300"
+                      >IFSC Code</label
+                    >
+                    <input
+                      type="text"
+                      id="reg-ifsc"
+                      class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div class="flex items-center">
+                    <input
+                      id="reg-terms"
+                      type="checkbox"
+                      class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label
+                      for="reg-terms"
+                      class="ml-2 block text-sm text-gray-400"
+                      >I agree to the
+                      <a
+                        href="#"
+                        onclick="navigateTo('terms')"
+                        class="text-indigo-400 hover:underline"
+                        >Terms & Conditions</a
+                      >
+                      and
+                      <a
+                        href="#"
+                        onclick="navigateTo('privacy')"
+                        class="text-indigo-400 hover:underline"
+                        >Privacy Policy</a
+                      >.</label
+                    >
+                  </div>
+                  <div class="flex gap-4">
+                    <button
+                      type="button"
+                      onclick="prevStep(2)"
+                      class="w-1/2 bg-gray-600 hover:bg-gray-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition-all"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      class="w-1/2 bg-green-600 hover:bg-green-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold btn-glow"
+                    >
+                      Register Account
+                    </button>
+                  </div>
+                </div>
+              </form>
+              <p id="reg-message" class="text-center text-green-400 mt-4"></p>
+            </div>
+
+            <!-- TAB 2: Company User Login -->
+            <div id="tab-company-login" class="login-tab-content">
+              <h3 class="text-xl font-semibold mb-4 text-center">
+                Company / Software Login
+              </h3>
+              <form id="company-login-form" class="space-y-4">
+                <div>
+                  <label
+                    for="company-username"
+                    class="block text-sm font-medium text-gray-300"
+                    >Username (Email/Mobile)</label
+                  >
+                  <input
+                    type="text"
+                    id="company-username"
+                    class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    for="company-password"
+                    class="block text-sm font-medium text-gray-300"
+                    >Password</label
+                  >
+                  <input
+                    type="password"
+                    id="company-password"
+                    class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+                <div class="text-center pt-2 text-gray-400 text-sm">
+                  --- Or Other Ways to Login ---
+                </div>
+                <div>
+                  <label
+                    for="company-virtual-id"
+                    class="block text-sm font-medium text-gray-300"
+                    >Virtual ID Card Name</label
+                  >
+                  <input
+                    type="text"
+                    id="company-virtual-id"
+                    class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label
+                    for="company-passkey"
+                    class="block text-sm font-medium text-gray-300"
+                    >Passkey</label
+                  >
+                  <input
+                    type="text"
+                    id="company-passkey"
+                    class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Use innovative authenticator app"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold btn-glow"
+                >
+                  Login
+                </button>
+              </form>
+            </div>
+
+            <!-- TAB 3: Admin / Founder Login -->
+            <div id="tab-admin-login" class="login-tab-content">
+              <h3 class="text-xl font-semibold mb-4 text-center">
+                Admin / Founder Login
+              </h3>
+              <form id="admin-login-form" class="space-y-4">
+                <div>
+                  <label
+                    for="admin-username"
+                    class="block text-sm font-medium text-gray-300"
+                    >Username (Email/Mobile)</label
+                  >
+                  <input
+                    type="text"
+                    id="admin-username"
+                    class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    for="admin-password"
+                    class="block text-sm font-medium text-gray-300"
+                    >Password</label
+                  >
+                  <input
+                    type="password"
+                    id="admin-password"
+                    class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    for="admin-passkey"
+                    class="block text-sm font-medium text-gray-300"
+                    >Passkey</label
+                  >
+                  <input
+                    type="text"
+                    id="admin-passkey"
+                    class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="w-full bg-gray-700 hover:bg-gray-600 text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11V6c0-2.21 1.79-4 4-4s4 1.79 4 4v5c0 1.281-.203 2.508-.57 3.659M12 11V6m0 8v.01M12 11h.01M12 11c.01 0 .01 0 0 0z"
+                    ></path>
+                  </svg>
+                  Authenticate with Fingerprint Scan
+                </button>
+                <button
+                  type="submit"
+                  class="w-full bg-purple-600 hover:bg-purple-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-glow-purple btn-glow"
+                >
+                  Access Dashboard
+                </button>
+              </form>
+            </div>
+
+            <!-- Generic Login Message -->
+            <p id="login-message" class="text-center text-green-400 mt-4"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- === WORKSPACE PAGE (NEW) === -->
+      <div id="page-workspace" class="page-content min-h-screen py-16 px-4">
+        <div class="container mx-auto">
+          <h2 class="text-3xl font-bold mb-4 gradient-text">
+            Creator & Solver Workspace
+          </h2>
+          <p class="text-gray-400 mb-12 max-w-2xl">
+            This is your hub for "real-world problem solving." Access
+            specialized AI tools based on your job role.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- 3D Modeller -->
+            <div
+              class="bg-gray-900 p-6 rounded-lg shadow-glow-indigo/30 border border-indigo-500/20"
+            >
+              <h3 class="text-xl font-semibold mb-3 text-indigo-400">
+                AI 3D Modeller (Beta)
+              </h3>
+              <p class="text-gray-400 mb-4">
+                A tool for Interior Designers, Researchers, and Game Developers.
+                (Feature Placeholder)
+              </p>
+              <div
+                class="aspect-video bg-gray-800 rounded-lg flex items-center justify-center"
+              >
+                <span class="text-gray-500">3D Viewport (Simulation)</span>
+              </div>
+            </div>
+
+            <!-- Visual Gaming Interface -->
+            <div
+              class="bg-gray-900 p-6 rounded-lg shadow-glow-indigo/30 border border-indigo-500/20"
+            >
+              <h3 class="text-xl font-semibold mb-3 text-indigo-400">
+                Visual Gaming Interface
+              </h3>
+              <p class="text-gray-400 mb-4">
+                A space for creating and testing interactive game logic and
+                visual assets. (Feature Placeholder)
+              </p>
+              <div
+                class="aspect-video bg-gray-800 rounded-lg flex items-center justify-center"
+              >
+                <span class="text-gray-500">Game Engine (Simulation)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- === ADMIN DASHBOARD PAGE (SIMULATED) === -->
+      <div id="page-dashboard" class="page-content min-h-screen py-16 px-4">
+        <div class="container mx-auto">
+          <h2 class="text-3xl font-bold mb-8 gradient-text">Admin Dashboard</h2>
+
+          <!-- Pending Integration Note -->
+          <div
+            class="bg-yellow-900/50 border border-yellow-700 text-yellow-300 p-4 rounded-lg mb-8"
+          >
+            <span class="font-bold">Pending Integration:</span> The `golden
+            project.pdf` file was not provided. Its scenarios will be integrated
+            here upon upload.
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Main Data -->
+            <div class="lg:col-span-2 space-y-8">
+              <!-- Budget Overview -->
+              <div
+                class="bg-gray-900 p-6 rounded-lg shadow-glow-purple/30 border border-purple-500/20"
+              >
+                <h3 class="text-xl font-semibold mb-4 text-purple-400">
+                  Total Employees & Budget (Live)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <p class="text-sm text-gray-400">Total Employees</p>
+                    <p class="text-2xl font-bold">330</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-400">Monthly Budget</p>
+                    <p class="text-2xl font-bold">₹ 2.26 Crore</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-400">Annual Budget</p>
+                    <p class="text-2xl font-bold">₹ 27.12 Crore</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- NEW: Live Financial Data -->
+              <div
+                class="bg-gray-900 p-6 rounded-lg shadow-glow-purple/30 border border-purple-500/20"
+              >
+                <h3 class="text-xl font-semibold mb-4 text-purple-400">
+                  Live Financial Data (Simulated)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- Currency Converter -->
+                  <div>
+                    <h4 class="text-lg font-semibold mb-3 text-indigo-400">
+                      Currency Conversion
+                    </h4>
+                    <div class="space-y-2">
+                      <div class="flex gap-2">
+                        <input
+                          type="text"
+                          value="100"
+                          class="w-1/2 bg-gray-800 border-gray-700 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                        <select
+                          class="w-1/2 bg-gray-800 border-gray-700 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option>USD</option>
+                          <option>INR</option>
+                        </select>
+                      </div>
+                      <div
+                        class="flex items-center justify-center text-gray-400"
+                      >
+                        <svg
+                          class="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M7 16V4m0 12L3 8m4 4l4 4m6-12v12m0-12L17 8m-4-4l-4 4"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div class="flex gap-2">
+                        <input
+                          type="text"
+                          value="8350.00"
+                          class="w-1/2 bg-gray-800 border-gray-700 rounded-lg p-2 text-sm"
+                          readonly
+                        />
+                        <select
+                          class="w-1/2 bg-gray-800 border-gray-700 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option>INR</option>
+                          <option>USD</option>
+                        </select>
+                      </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                      Live rate: 1 USD = 83.50 INR
+                    </p>
+                  </div>
+                  <!-- Crypto Tracker -->
+                  <div>
+                    <h4 class="text-lg font-semibold mb-3 text-indigo-400">
+                      Crypto Tracker
+                    </h4>
+                    <div class="space-y-3">
+                      <div
+                        class="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg"
+                      >
+                        <div>
+                          <span class="font-bold">CHC</span>
+                          <span class="text-sm text-gray-400"> / INR</span>
+                        </div>
+                        <div class="text-right">
+                          <span class="font-semibold text-lg">₹ 150.75</span>
+                          <span class="text-sm text-green-400">+2.5%</span>
+                        </div>
+                      </div>
+                      <div
+                        class="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg"
+                      >
+                        <div>
+                          <span class="font-bold">BTC</span>
+                          <span class="text-sm text-gray-400"> / INR</span>
+                        </div>
+                        <div class="text-right">
+                          <span class="font-semibold text-lg">₹ 5,200,120</span>
+                          <span class="text-sm text-red-400">-1.2%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                      Data simulated via internal API.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Salary Details -->
+              <div
+                class="bg-gray-900 p-6 rounded-lg shadow-glow-purple/30 border border-purple-500/20"
+              >
+                <h3 class="text-xl font-semibold mb-4 text-purple-400">
+                  Departmental Salary Details (Sample)
+                </h3>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-800 text-gray-400 uppercase">
+                      <tr>
+                        <th class="p-3">Department</th>
+                        <th class="p-3">Employees</th>
+                        <th class="p-3">Monthly Total</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                      <tr class="hover:bg-gray-800/50">
+                        <td class="p-3">Finance</td>
+                        <td class="p-3">39</td>
+                        <td class="p-3">₹ 23 Lakh</td>
+                      </tr>
+                      <tr class="hover:bg-gray-800/50">
+                        <td class="p-3">Data Scientists</td>
+                        <td class="p-3">39</td>
+                        <td class="p-3">₹ 23 Lakh</td>
+                      </tr>
+                      <tr class="hover:bg-gray-800/50">
+                        <td class="p-3">Researchers</td>
+                        <td class="p-3">39</td>
+                        <td class="p-3">₹ 23 Lakh</td>
+                      </tr>
+                      <tr class="hover:bg-gray-800/50">
+                        <td class="p-3">CEO</td>
+                        <td class="p-3">3</td>
+                        <td class="p-3">₹ 3 Lakh</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Actions -->
+            <div class="space-y-8">
+              <div
+                class="bg-gray-900 p-6 rounded-lg shadow-glow-indigo/30 border border-indigo-500/20"
+              >
+                <h3 class="text-xl font-semibold mb-4 text-indigo-400">
+                  Quick Actions
+                </h3>
+                <div class="space-y-3">
+                  <button
+                    id="run-payroll-btn"
+                    class="w-full bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg font-semibold btn-glow shadow-green-500/30 flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 12v.01M12 12c-1.657 0-3-.895-3-2s1.343-2 3-2m0 8c1.11 0 2.08-.402 2.599-1M12 12v5m0-5c-1.11 0-2.08-.402-2.599-1M12 12c.624 0 1.18.17 1.639.44M18 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      ></path>
+                    </svg>
+                    Run Automated Payroll
+                  </button>
+                  <p
+                    id="payroll-status"
+                    class="text-center text-sm text-green-400"
+                  ></p>
+                  <button
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-semibold btn-glow flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      ></path>
+                    </svg>
+                    Start Virtual Interview
+                  </button>
+                  <button
+                    class="w-full bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-all"
+                  >
+                    View All 330 Employees
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- === BLOGS LIST PAGE === -->
+      <div id="page-blogs" class="page-content min-h-screen py-16 px-4">
+        <div class="container mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-12 gradient-text">
+            ViśvaDarśana Blog
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Blog Post 1 -->
+            <div
+              class="bg-gray-900 rounded-lg overflow-hidden shadow-glow-indigo/30 border border-indigo-500/20 flex flex-col"
+            >
+              <img
+                src="https://placehold.co/600x400/111827/a855f7?text=AI+SEO"
+                alt="Blog Post Image"
+                class="w-full h-48 object-cover"
+              />
+              <div class="p-6 flex flex-col flex-1">
+                <h3 class="text-xl font-semibold mb-3 text-indigo-400">
+                  The Future of AI in India: A 10 Trillion Dollar Opportunity
+                  and SEO Strategies for Dominance
+                </h3>
+                <p class="text-gray-400 text-sm mb-4">
+                  In an era of digital transformation, India stands at the
+                  precipice of an AI-driven revolution... (1500+ Words)
+                </p>
+                <div class="mt-auto">
+                  <a
+                    href="#"
+                    onclick="navigateTo('blog-post-1')"
+                    class="text-indigo-400 hover:text-indigo-300 font-semibold"
+                    >Read More &rarr;</a
+                  >
+                </div>
+              </div>
+            </div>
+            <!-- Blog Post 2 -->
+            <div
+              class="bg-gray-900 rounded-lg overflow-hidden shadow-glow-indigo/30 border border-indigo-500/20 flex flex-col"
+            >
+              <img
+                src="https://placehold.co/600x400/111827/ec4899?text=Quantum+Security"
+                alt="Blog Post Image"
+                class="w-full h-48 object-cover"
+              />
+              <div class="p-6 flex flex-col flex-1">
+                <h3 class="text-xl font-semibold mb-3 text-pink-400">
+                  Quantum-Ready: Why the DPDP Act Demands a New Class of
+                  Security
+                </h3>
+                <p class="text-gray-400 text-sm mb-4">
+                  India's Digital Personal Data Protection (DPDP) Act isn't just
+                  another regulation. It's a foundational shift...
+                </p>
+                <div class="mt-auto">
+                  <a
+                    href="#"
+                    onclick="alert('This is a placeholder article.')"
+                    class="text-pink-400 hover:text-pink-300 font-semibold"
+                    >Read More &rarr;</a
+                  >
+                </div>
+              </div>
+            </div>
+            <!-- Blog Post 3 -->
+            <div
+              class="bg-gray-900 rounded-lg overflow-hidden shadow-glow-indigo/30 border border-indigo-500/20 flex flex-col"
+            >
+              <img
+                src="https://placehold.co/600x400/111827/6366f1?text=Made+in+India+AI"
+                alt="Blog Post Image"
+                class="w-full h-48 object-cover"
+              />
+              <div class="p-6 flex flex-col flex-1">
+                <h3 class="text-xl font-semibold mb-3 text-blue-400">
+                  Building a Sovereign AI: The "Made in India" Tech Stack
+                </h3>
+                <p class="text-gray-400 text-sm mb-4">
+                  The global AI race is on. To be a true digital superpower,
+                  India cannot just be a consumer of AI; it must be a creator...
+                </p>
+                <div class="mt-auto">
+                  <a
+                    href="#"
+                    onclick="alert('This is a placeholder article.')"
+                    class="text-blue-400 hover:text-blue-300 font-semibold"
+                    >Read More &rarr;</a
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- === BLOG POST (SEO ARTICLE) === -->
+      <div id="page-blog-post-1" class="page-content min-h-screen py-16 px-4">
+        <div class="container mx-auto max-w-4xl">
+          <div class="bg-gray-900 p-8 rounded-lg shadow-glow-purple/20">
+            <a
+              href="#"
+              onclick="navigateTo('blogs')"
+              class="text-indigo-400 hover:underline mb-4 inline-block"
+              >&larr; Back to Blogs</a
+            >
+            <img
+              src="https://placehold.co/800x400/111827/a855f7?text=The+Future+of+AI+SEO"
+              alt="Blog Post Image"
+              class="w-full h-64 object-cover rounded-lg mb-6"
+            />
+
+            <h1 class="text-3xl md:text-4xl font-bold mb-6 gradient-text">
+              The Future of AI in India: A 10 Trillion Dollar Opportunity and
+              SEO Strategies for Dominance
+            </h1>
+
+            <div
+              class="prose prose-invert prose-lg max-w-none text-gray-300 prose-headings:text-indigo-400 prose-a:text-purple-400 prose-strong:text-white"
+            >
+              <p class="text-lg text-gray-400">
+                In an era of digital transformation, India stands at the
+                precipice of an AI-driven revolution. This isn't just a
+                technological upgrade; it's a foundational economic shift poised
+                to unlock unprecedented value, potentially adding trillions to
+                the national GDP. As we build platforms like "ChitraHarsha
+                ViśvaDarśana," we are not just participating in this change—we
+                are aiming to define it. This article explores the magnitude of
+                India's AI opportunity and the critical SEO (Search Engine
+                Optimization) and marketing strategies required for "Made in
+                India" AI platforms to achieve global dominance.
+              </p>
+
+              <h2 class="mt-8">
+                The $10 Trillion Context: AI and India's Economic Future
+              </h2>
+              <p>
+                The "10 trillion" figure is more than a buzzword; it's a
+                tangible target. Projections from various reports suggest that
+                AI could contribute over a trillion dollars to India's economy
+                by 2035. When combined with the broader digital economy, the $10
+                trillion vision becomes clear. This growth will be non-linear
+                and will be powered by key technologies:
+              </p>
+              <ul>
+                <li>
+                  <strong>Artificial Intelligence (AI):</strong> The "brain"
+                  that drives decision-making, personalization, and automation.
+                </li>
+                <li>
+                  <strong>Machine Learning (ML):</strong> The "learning" process
+                  that allows AI models to improve from data without being
+                  explicitly programmed.
+                </li>
+                <li>
+                  <strong>Natural Language Processing (NLP):</strong> The
+                  "voice" that allows humans and machines to interact
+                  seamlessly, as seen in advanced chatbots and our own
+                  Interactive AI Sessions.
+                </li>
+              </ul>
+              <p>
+                This "AI-stack" is moving from a niche tool to a core business
+                utility, impacting everything from FinTech (like our "VPK Pay"
+                system) to corporate management (like our automated payroll) and
+                content creation.
+              </p>
+
+              <h2 class="mt-8">
+                SEO Marketing Specialization for an AI-Driven World
+              </h2>
+              <p>
+                For a platform like ChitraHarsha ViśvaDarśana, existing, it's
+                not enough to *have* great AI; it must be *discoverable*.
+                Traditional SEO is dead. The new SEO is about authority, data,
+                and user intent, all of which are amplified by AI. Here are the
+                core strategies we are embedding into our platform.
+              </p>
+
+              <h3>
+                1. Authority & E-E-A-T (Experience, Expertise,
+                Authoritativeness, Trust)
+              </h3>
+              <p>
+                Google's search algorithms, which are themselves powerful AI
+                models, prioritize content that demonstrates E-E-A-T. For a
+                high-stakes platform dealing with finance (CHC, VPK Pay) and
+                user data (DPDP Act compliance), trust is non-negotiable.
+              </p>
+              <ul>
+                <li>
+                  <strong>Expertise:</strong> Our blogs and content are crafted
+                  by subject-matter experts in AI, blockchain, and Indian
+                  regulatory law.
+                </li>
+                <li>
+                  <strong>Authoritativeness:</strong> By building a
+                  comprehensive, "all-in-one" ecosystem, the platform itself
+                  becomes an authority, not just a disparate set of tools.
+                </li>
+                <li>
+                  <strong>Trust:</strong> Our radical transparency on data
+                  privacy (DPDP compliance) and quantum-ready security isn't
+                  just a legal requirement; it's our primary SEO and marketing
+                  message.
+                </li>
+              </ul>
+
+              <h3>2. AI-Driven Content & Programmatic SEO</h3>
+              <p>
+                Why write one article when you can write ten thousand?
+                Programmatic SEO involves using data and templates to
+                automatically generate thousands of high-quality, specific
+                pages. Our platform architecture is designed for this.
+              </p>
+              <p>
+                Imagine a user searching for "data analyst salary in Mumbai for
+                3 years experience." Instead of a generic blog, our AI can
+                programmatically generate a page with real-time, anonymized data
+                from our job-role registration module, creating a unique,
+                high-value page that perfectly matches user intent. This is how
+                we scale our discoverability.
+              </p>
+
+              <h3>
+                3. Leveraging Big Data (Google BigQuery & "10 Trillion SQL
+                Support")
+              </h3>
+              <p>
+                The "10 Trillion SQL Support" isn't just about storage; it's
+                about *query speed*. We use Google BigQuery, an enterprise-grade
+                data warehouse, to analyze petabytes of search-trend data,
+                user-behavior data, and market data in seconds. This allows our
+                marketing and AI teams to:
+              </p>
+              <ul>
+                <li>
+                  <strong>Identify "Intent Gaps":</strong> What are users
+                  searching for that our competitors are not answering?
+                </li>
+                <li>
+                  <strong>Personalize User Journeys:</strong> Our NLP-powered
+                  chat AI can access this vast data pool to give genuinely
+                  helpful, data-backed answers, not just generic scripts.
+                </li>
+                <li>
+                  <strong>Predict Trends:</strong> We can model market changes
+                  and create content *before* it becomes a trend, establishing
+                  us as the primary source of information.
+                </li>
+              </ul>
+
+              <h2 class="mt-8">
+                The "Made in India" Advantage: A Sovereign Strategy
+              </h2>
+              <p>
+                Building a sovereign "Made in India" platform gives us a unique
+                marketing advantage. We are not just another Silicon Valley
+                clone. We are built with a deep understanding of Indian
+                regulations (IT Act, DPDP Act), financial systems (UPI, NPCI),
+                and data infrastructure (GI Cloud, data localization).
+              </p>
+              <p>
+                This "Made in India" tag is a powerful trust signal for Indian
+                users, businesses, and government agencies. Our SEO strategy
+                highlights this compliance and sovereignty, making us the
+                default choice for any entity that prioritizes data security and
+                national alignment.
+              </p>
+
+              <h2 class="mt-8">Conclusion: The ViśvaDarśana Vision</h2>
+              <p>
+                The road to a $10 trillion economy is paved with data and
+                intelligence. At ChitraHarsha ViśvaDarśana, we are building one
+                of the core engines for that journey. Our platform is a living
+                example of this new paradigm: an ecosystem where AI, data, and
+                security are not features, but the very foundation.
+              </p>
+              <p>
+                Our SEO and marketing strategy is simple: we *are* the product.
+                We demonstrate our expertise through our technology, we build
+                trust through our security, and we provide value by solving
+                real-world problems for creators, corporations, and users. By
+                mastering the synergy between AI and SEO, we are ensuring that
+                when the world searches for the "future of Indian tech," our
+                name is at the top of the list.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- === DOWNLOAD CLIENT PAGE === -->
+      <div
+        id="page-download"
+        class="page-content min-h-screen py-16 px-4 flex items-center"
+      >
+        <div class="container mx-auto max-w-2xl text-center">
+          <div
+            class="bg-gray-900 p-10 rounded-lg shadow-glow-indigo border border-indigo-500/20"
+          >
+            <h2 class="text-3xl font-bold mb-4 gradient-text">
+              Download the Client
+            </h2>
+            <p class="text-gray-400 mb-8">
+              Access the full power of the ViśvaDarśana ecosystem with our
+              native desktop client. Auto-updates included.
+            </p>
+            <div class="space-y-4">
+              <button
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all flex items-center justify-center gap-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M12 2.5a.5.5 0 0 0-1 0V11h-2a.5.5 0 0 0 0 1h2v7.5a.5.5 0 0 0 1 0V12h2a.5.5 0 0 0 0-1h-2Z"
+                  />
+                  <path
+                    d="M3.5 3.5a.5.5 0 0 0 0 1H5v2.5a.5.5 0 0 0 1 0V4.5h2.5a.5.5 0 0 0 0-1H6V1.5a.5.5 0 0 0-1 0V3.5Z"
+                  />
+                  <path
+                    d="m15.5 3.5.5.5 2 2 .5.5v2.5a.5.5 0 0 0 1 0V6L17 3.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0 0 1H15.5Z"
+                  />
+                  <path
+                    d="m3.5 15.5-.5.5-2 2-.5.5v2.5a.5.5 0 0 0 1 0V20L3 17.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0 0 1H1.5Z"
+                  />
+                  <path
+                    d="M15.5 15.5a.5.5 0 0 0 0 1H17v2.5a.5.5 0 0 0 1 0V16.5h2.5a.5.5 0 0 0 0-1H18V13.5a.5.5 0 0 0-1 0V15.5Z"
+                  />
+                  <path
+                    d="m18.5 15.5.5.5 2 2 .5.5v2.5a.5.5 0 0 0 1 0V20L20 17.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0 0 1H18.5Z"
+                  />
+                </svg>
+                Download for Windows
+              </button>
+              <button
+                class="w-full bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all flex items-center justify-center gap-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M12.5 4a.5.5 0 0 0-1 0V11h-2a.5.5 0 0 0 0 1h2v7.5a.5.5 0 0 0 1 0V12h2a.5.5 0 0 0 0-1h-2Z"
+                  />
+                  <path
+                    d="M3.5 3.5a.5.5 0 0 0 0 1H5v2.5a.5.5 0 0 0 1 0V4.5h2.5a.5.5 0 0 0 0-1H6V1.5a.5.5 0 0 0-1 0V3.5Z"
+                  />
+                  <path
+                    d="m15.5 3.5.5.5 2 2 .5.5v2.5a.5.5 0 0 0 1 0V6L17 3.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0 0 1H15.5Z"
+                  />
+                  <path
+                    d="m3.5 15.5-.5.5-2 2-.5.5v2.5a.5.5 0 0 0 1 0V20L3 17.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0 0 1H1.5Z"
+                  />
+                  <path
+                    d="M15.5 15.5a.5.5 0 0 0 0 1H17v2.5a.5.5 0 0 0 1 0V16.5h2.5a.5.5 0 0 0 0-1H18V13.5a.5.5 0 0 0-1 0V15.5Z"
+                  />
+                  <path
+                    d="m18.5 15.5.5.5 2 2 .5.5v2.5a.5.5 0 0 0 1 0V20L20 17.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0 0 1H18.5Z"
+                  />
+                </svg>
+                Download for macOS
+              </button>
+              <button
+                class="w-full bg-yellow-600 hover:bg-yellow-500 text-gray-900 px-8 py-4 rounded-lg text-lg font-semibold transition-all flex items-center justify-center gap-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M12.5 4a.5.5 0 0 0-1 0V11h-2a.5.5 0 0 0 0 1h2v7.5a.5.5 0 0 0 1 0V12h2a.5.5 0 0 0 0-1h-2Z"
+                  />
+                  <path
+                    d="M3.5 3.5a.5.5 0 0 0 0 1H5v2.5a.5.5 0 0 0 1 0V4.5h2.5a.5.5 0 0 0 0-1H6V1.5a.5.5 0 0 0-1 0V3.5Z"
+                  />
+                  <path
+                    d="m15.5 3.5.5.5 2 2 .5.5v2.5a.5.5 0 0 0 1 0V6L17 3.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0 0 1H15.5Z"
+                  />
+                  <path
+                    d="m3.5 15.5-.5.5-2 2-.5.5v2.5a.5.5 0 0 0 1 0V20L3 17.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0 0 1H1.5Z"
+                  />
+                  <path
+                    d="M15.5 15.5a.5.5 0 0 0 0 1H17v2.5a.5.5 0 0 0 1 0V16.5h2.5a.5.5 0 0 0 0-1H18V13.5a.5.5 0 0 0-1 0V15.5Z"
+                  />
+                  <path
+                    d="m18.5 15.5.5.5 2 2 .5.5v2.5a.5.5 0 0 0 1 0V20L20 17.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0 0 1H18.5Z"
+                  />
+                </svg>
+                Download for Linux
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- === FREEMIUM / PRICING PAGE === -->
+      <div id="page-freemium" class="page-content min-h-screen py-20 px-4">
+        <div class="container mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-4 gradient-text">
+            Platform Pricing
+          </h2>
+          <p class="text-center text-gray-400 mb-12 max-w-2xl mx-auto">
+            Choose the plan that fits your needs. All plans are "Made in India"
+            and adhere to our strict data privacy standards.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Plan 1: Free -->
+            <div
+              class="bg-gray-900 p-8 rounded-lg border border-gray-700 flex flex-col"
+            >
+              <h3 class="text-2xl font-semibold mb-3 text-gray-400">
+                Personal (Free)
+              </h3>
+              <p class="text-4xl font-bold mb-6">
+                ₹0
+                <span class="text-lg font-normal text-gray-400">/ month</span>
+              </p>
+              <ul class="space-y-2 text-gray-300 mb-8 flex-1">
+                <li class="flex gap-2">
+                  <span>&check;</span> Basic AI Chat Access
+                </li>
+                <li class="flex gap-2">
+                  <span>&check;</span> 1GB Cloud Storage
+                </li>
+                <li class="flex gap-2">
+                  <span>&check;</span> Standard Security
+                </li>
+              </ul>
+              <button
+                class="w-full bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold transition-all"
+              >
+                Get Started
+              </button>
+            </div>
+            <!-- Plan 2: Pro (Highlighted) -->
+            <div
+              class="bg-gray-900 p-8 rounded-lg border-2 border-indigo-500 shadow-glow-indigo flex flex-col relative"
+            >
+              <span
+                class="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase"
+                >Most Popular</span
+              >
+              <h3 class="text-2xl font-semibold mb-3 text-indigo-400">
+                Professional
+              </h3>
+              <p class="text-4xl font-bold mb-6">
+                ₹1,500
+                <span class="text-lg font-normal text-gray-400">/ month</span>
+              </p>
+              <ul class="space-y-2 text-gray-300 mb-8 flex-1">
+                <li class="flex gap-2">
+                  <span>&check;</span> Advanced AI & NLP Models
+                </li>
+                <li class="flex gap-2">
+                  <span>&check;</span> 100GB Cloud Storage
+                </li>
+                <li class="flex gap-2">
+                  <span>&check;</span> Blockchain-Encrypted Security
+                </li>
+                <li class="flex gap-2">
+                  <span>&check;</span> Content Creator Tools
+                </li>
+              </ul>
+              <button
+                onclick="showPaymentOptions()"
+                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-semibold btn-glow"
+              >
+                Choose Pro
+              </button>
+            </div>
+            <!-- Plan 3: Enterprise -->
+            <div
+              class="bg-gray-900 p-8 rounded-lg border border-gray-700 flex flex-col"
+            >
+              <h3 class="text-2xl font-semibold mb-3 text-purple-400">
+                Enterprise
+              </h3>
+              <p class="text-4xl font-bold mb-6">Contact Us</p>
+              <ul class="space-y-2 text-gray-300 mb-8 flex-1">
+                <li class="flex gap-2">
+                  <span>&check;</span> Full AI Suite & API Access
+                </li>
+                <li class="flex gap-2">
+                  <span>&check;</span> 10 Trillion SQL Support (BigQuery)
+                </li>
+                <li class="flex gap-2">
+                  <span>&check;</span> Quantum-Ready Encryption
+                </li>
+                <li class="flex gap-2">
+                  <span>&check;</span> Dedicated Indian Cloud Support
+                </li>
+              </ul>
+              <button
+                onclick="navigateTo('contact')"
+                class="w-full bg-purple-600 hover:bg-purple-500 text-white px-6 py-3 rounded-lg font-semibold shadow-glow-purple btn-glow"
+              >
+                Contact Sales
+              </button>
+            </div>
+          </div>
+
+          <!-- Payment Options Modal -->
+          <div
+            id="payment-modal"
+            class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4"
+          >
+            <div
+              class="bg-gray-900 p-8 rounded-lg shadow-glow-purple max-w-md w-full relative"
+            >
+              <button
+                onclick="hidePaymentOptions()"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white"
+              >
+                &times;
+              </button>
+              <h3 class="text-2xl font-semibold mb-6 text-center gradient-text">
+                Select Payment Method
+              </h3>
+              <div class="space-y-4">
+                <button
+                  class="w-full bg-blue-500 hover:bg-blue-400 text-white px-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-3 text-lg"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M10 10.155V10A2 2 0 106 10v.155a8.996 8.996 0 000 7.69V18a2 2 0 104 0v-.155a8.996 8.996 0 000-7.69zM8 12a1 1 0 110-2 1 1 0 010 2zm.002 3a1 1 0 110-2 1 1 0 010 2zm7.996-3.155a8.996 8.996 0 000-7.69V4a2 2 0 10-4 0v.155a8.996 8.996 0 000 7.69V12a2 2 0 104 0v-.155zm-1.998-5.733a1 1 0 110-2 1 1 0 010 2zm0 3a1 1 0 110-2 1 1 0 010 2zM8 4a1 1 0 11-2 0 1 1 0 012 0zm8 16a1 1 0 11-2 0 1 1 0 012 0z"
+                    ></path>
+                  </svg>
+                  Pay with The ChitraHarsha VPK Pay (UPI)
+                </button>
+                <button
+                  class="w-full bg-yellow-500 hover:bg-yellow-400 text-gray-900 px-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-3 text-lg"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-12h2v2h-2v-2zm0 4h2v6h-2v-6z"
+                    ></path>
+                  </svg>
+                  Pay with Cryptocurrency (CHC)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- === CONTACT US PAGE === -->
+      <div
+        id="page-contact"
+        class="page-content min-h-screen py-16 px-4 flex items-center"
+      >
+        <div class="container mx-auto max-w-4xl">
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-10 bg-gray-900 p-8 rounded-lg shadow-glow-indigo border border-indigo-500/20"
+          >
+            <!-- Contact Form -->
+            <div>
+              <h2 class="text-3xl font-bold mb-6 gradient-text">
+                Get in Touch
+              </h2>
+              <form id="contact-form" class="space-y-4">
+                <div>
+                  <label
+                    for="contact-name"
+                    class="block text-sm font-medium text-gray-300"
+                    >Full Name</label
+                  >
+                  <input
+                    type="text"
+                    id="contact-name"
+                    class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    for="contact-email"
+                    class="block text-sm font-medium text-gray-300"
+                    >Email Address</label
+                  >
+                  <input
+                    type="email"
+                    id="contact-email"
+                    class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    for="contact-message"
+                    class="block text-sm font-medium text-gray-300"
+                    >Message</label
+                  >
+                  <textarea
+                    id="contact-message"
+                    rows="5"
+                    class="mt-1 block w-full bg-gray-800 border-gray-700 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  ></textarea>
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold btn-glow"
+                >
+                  Send Message
+                </button>
+                <p
+                  id="contact-message-status"
+                  class="text-center text-sm text-green-400"
+                ></p>
+              </form>
+            </div>
+            <!-- Contact Info -->
+            <div class="text-gray-300">
+              <h3 class="text-2xl font-semibold mb-6 text-indigo-400">
+                Contact Information
+              </h3>
+              <p class="mb-4">
+                You can reach us at our corporate headquarters or through our
+                digital channels.
+              </p>
+              <div class="space-y-4">
+                <p class="flex gap-3">
+                  <svg
+                    class="w-5 h-5 text-indigo-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    ></path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    ></path>
+                  </svg>
+                  <span>123 Cyber Hub, Gurugram, India</span>
+                </p>
+                <p class="flex gap-3">
+                  <svg
+                    class="w-5 h-5 text-indigo-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    ></path>
+                  </svg>
+                  <span>contact@chitraharshavpk.in</span>
+                </p>
+                <p class="flex gap-3">
+                  <svg
+                    class="w-5 h-5 text-indigo-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    ></path>
+                  </svg>
+                  <span>+91 0123 456 789</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- === FAQS PAGE === -->
+      <div id="page-faqs" class="page-content min-h-screen py-16 px-4">
+        <div class="container mx-auto max-w-3xl">
+          <h2 class="text-3xl font-bold text-center mb-12 gradient-text">
+            Frequently Asked Questions
+          </h2>
+          <div class="space-y-6">
+            <div class="bg-gray-900 p-6 rounded-lg border border-indigo-500/20">
+              <h3 class="text-xl font-semibold mb-3 text-indigo-400">
+                Is my data safe with ChitraHarsha ViśvaDarśana?
+              </h3>
+              <p class="text-gray-400">
+                Yes. We are built to comply with India's Digital Personal Data
+                Protection (DPDP) Act, 2023. We utilize blockchain encryption,
+                store data in secure Indian data centers, and have a strict
+                policy against selling your personal data. Your privacy and
+                security are our highest priority.
+              </p>
+            </div>
+            <div class="bg-gray-900 p-6 rounded-lg border border-indigo-500/20">
+              <h3 class="text-xl font-semibold mb-3 text-indigo-400">
+                What is "The ChitraHarsha VPK Pay"?
+              </h3>
+              <p class="text-gray-400">
+                "The ChitraHarsha VPK Pay" is our proprietary, in-built UPI
+                payment system. It is designed to integrate with NPCI and allows
+                for seamless transactions within the platform, including
+                freemium plan payments and corporate salary disbursement.
+              </p>
+            </div>
+            <div class="bg-gray-900 p-6 rounded-lg border border-indigo-500/20">
+              <h3 class="text-xl font-semibold mb-3 text-indigo-400">
+                What is the ChitraHarsha Cryptocurrency (CHC)?
+              </h3>
+              <p class="text-gray-400">
+                CHC is our native "Made in India" cryptocurrency. It is used as
+                a payment option for services and as a reward mechanism for
+                content creators. It is designed to adhere to all Indian
+                financial regulations governing virtual digital assets.
+              </p>
+            </div>
+            <div class="bg-gray-900 p-6 rounded-lg border border-indigo-500/20">
+              <h3 class="text-xl font-semibold mb-3 text-indigo-400">
+                What does "10 Trillion SQL Support" mean?
+              </h3>
+              <p class="text-gray-400">
+                This refers to our backend architecture's ability to handle
+                massively-scaled, petabyte-level data. We use distributed data
+                warehouses like Google BigQuery, allowing us to run complex
+                analytical queries on trillions of rows of data almost
+                instantly. This powers our AI models and business analytics.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- === PRIVACY POLICY PAGE === -->
+      <div id="page-privacy" class="page-content min-h-screen py-16 px-4">
+        <div class="container mx-auto max-w-4xl">
+          <h2 class="text-3xl font-bold text-center mb-8 gradient-text">
+            Privacy Policy
+          </h2>
+          <div
+            class="prose prose-invert prose-lg max-w-none text-gray-300 prose-headings:text-indigo-400 prose-a:text-purple-400 prose-strong:text-white"
+          >
+            <p><strong>Last Updated: [Date]</strong></p>
+            <p>
+              The ChitraHarshaVPK Ventures Pvt Ltd ("we," "us," or "our")
+              operates the ChitraHarsha ViśvaDarśana platform. This policy
+              outlines our practices for collecting, using, and protecting your
+              personal data in compliance with Indian law.
+            </p>
+
+            <h3>1. Compliance with Indian Law</h3>
+            <p>This Privacy Policy is framed in strict accordance with:</p>
+            <ul>
+              <li>
+                <strong
+                  >The Digital Personal Data Protection (DPDP) Act,
+                  2023:</strong
+                >
+                We act as a "Data Fiduciary" for your personal data. We will
+                only process your data for lawful purposes after obtaining your
+                "free, specific, informed, unconditional, and unambiguous
+                consent."
+              </li>
+              <li>
+                <strong>The Information Technology (IT) Act, 2000</strong>, and
+                the **IT (Intermediary Guidelines and Digital Media Ethics Code)
+                Rules, 2021.**
+              </li>
+              <li>
+                <strong>CERT-In Directives:</strong> We comply with all data
+                logging (180 days) and incident reporting (within 6 hours)
+                requirements as mandated by the Indian Computer Emergency
+                Response Team (CERT-In).
+              </li>
+            </ul>
+
+            <h3>2. Data We Collect</h3>
+            <p>
+              We collect information you provide during registration, including
+              but not limited to:
+            </p>
+            <ul>
+              <li>
+                <strong>Personal Identifiers:</strong> Name, Email, Mobile
+                Number, Address, ID Proof (Aadhaar/PAN).
+              </li>
+              <li>
+                <strong>Financial Data:</strong> Bank Account Number and IFSC
+                code (for payroll and payments).
+              </li>
+              <li>
+                <strong>User-Generated Content:</strong> Videos, posts, and
+                images you upload.
+              </li>
+              <li>
+                <strong>Usage Data:</strong> System logs, IP addresses, and
+                browsing activity, maintained for 180 days as per CERT-In rules.
+              </li>
+            </ul>
+
+            <h3>3. How We Use Your Data</h3>
+            <p>Your data is used to:</p>
+            <ul>
+              <li>Provide and maintain the platform's services.</li>
+              <li>Create your Virtual ID Card and authenticate your login.</li>
+              <li>Process payments via "The ChitraHarsha VPK Pay."</li>
+              <li>Disburse corporate payroll.</li>
+              <li>Comply with legal obligations and government requests.</li>
+            </ul>
+
+            <h3>4. Data Security & Storage</h3>
+            <p>
+              We implement "quantum-ready" security, including blockchain
+              encryption, to protect your data. In line with "Made in India" and
+              data sovereignty principles, all sensitive personal data is stored
+              in MEITY-empanelled cloud data centers located within India.
+            </p>
+
+            <h3>5. Your Rights as a Data Principal</h3>
+            <p>Under the DPDP Act, you have the right to:</p>
+            <ul>
+              <li>Access a summary of your personal data.</li>
+              <li>
+                Correct or erase your data (subject to legal retention
+                requirements).
+              </li>
+              <li>Withdraw your consent at any time.</li>
+              <li>
+                Lodge a complaint with the Data Protection Board of India.
+              </li>
+            </ul>
+            <p>
+              For any privacy-related queries, please contact our Data
+              Protection Officer at [dpo@chitraharshavpk.in].
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- === TERMS & CONDITIONS PAGE === -->
+      <div id="page-terms" class="page-content min-h-screen py-16 px-4">
+        <div class="container mx-auto max-w-4xl">
+          <h2 class="text-3xl font-bold text-center mb-8 gradient-text">
+            Terms & Conditions
+          </h2>
+          <div
+            class="prose prose-invert prose-lg max-w-none text-gray-300 prose-headings:text-indigo-400 prose-a:text-purple-400 prose-strong:text-white"
+          >
+            <p>
+              Welcome to ChitraHarsha ViśvaDarśana. By registering and using our
+              platform, you agree to these Terms and Conditions.
+            </p>
+
+            <h3>1. User Accounts & Registration</h3>
+            <p>
+              You must provide accurate and complete information during
+              registration, including for ID proof and bank details as required
+              by Indian law for financial services and KYC. You are responsible
+              for maintaining the confidentiality of your passkey and Virtual ID
+              Card.
+            </p>
+
+            <h3>2. Content Creation & Conduct</h3>
+            <p>
+              As an "intermediary" under the IT Act, 2000, we host
+              user-generated content. You agree not to upload, post, or share
+              any content that is:
+            </p>
+            <ul>
+              <li>Defamatory, obscene, or harassing.</li>
+              <li>In violation of any Indian law.</li>
+              <li>Infringing on copyright or intellectual property.</li>
+              <li>
+                A threat to the unity, integrity, defence, security or
+                sovereignty of India.
+              </li>
+            </ul>
+            <p>
+              We reserve the right to remove any content and terminate any
+              account that violates these terms or upon receiving a lawful order
+              from a government agency or court.
+            </p>
+
+            <h3>3. Financial Services (VPK Pay & CHC)</h3>
+            <p>
+              Our financial services are subject to RBI, NPCI, and other
+              regulatory guidelines. We are not a financial advisor. All
+              cryptocurrency (CHC) transactions involve risk, and you are
+              responsible for your own financial decisions. All transactions are
+              subject to AML/PMLA checks.
+            </p>
+
+            <h3>4. Disclaimers</h3>
+            <p>
+              The platform is provided "as-is." While we implement
+              state-of-the-art security, we do not guarantee that the platform
+              will be 100% free from errors or cyber-attacks. Our liability is
+              limited to the extent permitted by Indian law.
+            </p>
+
+            <h3>5. Governing Law</h3>
+            <p>
+              These terms shall be governed by and construed in accordance with
+              the laws of the Republic of India. Any disputes will be subject to
+              the exclusive jurisdiction of the courts in [New Delhi/Mumbai],
+              India.
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-indigo-500/20 mt-20">
+      <div class="container mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <!-- About -->
+          <div>
+            <h4 class="text-xl font-bold mb-4 gradient-text">
+              ChitraHarsha ViśvaDarśana
+            </h4>
+            <p class="text-gray-400 text-sm">
+              Pioneering "Made in India" AI-driven innovation for a
+              future-ready, commercially viable digital ecosystem.
+            </p>
+          </div>
+          <!-- Quick Links -->
+          <div>
+            <h5 class="font-semibold text-gray-300 mb-4">Quick Links</h5>
+            <ul class="space-y-2 text-sm">
+              <li>
+                <a
+                  href="#"
+                  onclick="navigateTo('home')"
+                  class="text-gray-400 hover:text-indigo-400"
+                  >Home</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onclick="navigateTo('workspace')"
+                  class="text-gray-400 hover:text-indigo-400"
+                  >Workspace</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onclick="navigateTo('blogs')"
+                  class="text-gray-400 hover:text-indigo-400"
+                  >Blogs</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onclick="navigateTo('download')"
+                  class="text-gray-400 hover:text-indigo-400"
+                  >Download</a
+                >
+              </li>
+            </ul>
+          </div>
+          <!-- Legal & Support -->
+          <div>
+            <h5 class="font-semibold text-gray-300 mb-4">Legal & Support</h5>
+            <ul class="space-y-2 text-sm">
+              <li>
+                <a
+                  href="#"
+                  onclick="navigateTo('faqs')"
+                  class="text-gray-400 hover:text-indigo-400"
+                  >FAQs</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onclick="navigateTo('privacy')"
+                  class="text-gray-400 hover:text-indigo-400"
+                  >Privacy Policy</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onclick="navigateTo('terms')"
+                  class="text-gray-400 hover:text-indigo-400"
+                  >Terms & Conditions</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onclick="navigateTo('contact')"
+                  class="text-gray-400 hover:text-indigo-4T00"
+                  >Get in Touch</a
+                >
+              </li>
+            </ul>
+          </div>
+          <!-- Get in Touch -->
+          <div>
+            <h5 class="font-semibold text-gray-300 mb-4">Get in Touch</h5>
+            <p class="text-gray-400 text-sm">
+              The ChitraHarshaVPK Ventures Pvt Ltd<br />
+              contact@chitraharshavpk.in
+            </p>
+          </div>
+        </div>
+        <div
+          class="border-t border-gray-800 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center text-gray-500 text-sm"
+        >
+          <p>
+            &copy; 2025 The ChitraHarshaVPK Ventures Pvt Ltd. All Rights
+            Reserved. Built as a "Made in India" initiative.
+          </p>
+          <button
+            onclick="alert('Simulating page translation to Hindi...')"
+            class="mt-4 sm:mt-0 bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-xs flex items-center gap-1"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 5h12M9 3v2m4 13l4-4M19 17v-2m-2 2h2m-4-13l4 4m0 0l4-4m-4 4v12"
+              ></path>
+            </svg>
+            Translate Page (Simulated)
+          </button>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Core Application JavaScript -->
+    <script type="module">
+      // --- STATE MANAGEMENT ---
+      const state = {
+        currentPage: "home",
+        isLoggedIn: false, // Simulates login state
+        isAdmin: false, // Simulates admin login
+        currentRegStep: 1, // For multi-step form
+        currentLoginTab: "tab-register", // For login tabs
+      };
+
+      // --- DOM ELEMENTS ---
+      const allPages = document.querySelectorAll(".page-content");
+      const mobileMenu = document.getElementById("mobile-menu");
+      const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+      const navLoginBtn = document.getElementById("nav-login-btn");
+      const navDashboardBtn = document.getElementById("nav-dashboard-btn");
+      const mobileNavLoginBtn = document.getElementById("mobile-nav-login-btn");
+      const mobileNavDashboardBtn = document.getElementById(
+        "mobile-nav-dashboard-btn"
+      );
+      const regForm = document.getElementById("registration-form");
+      const companyLoginForm = document.getElementById("company-login-form");
+      const adminLoginForm = document.getElementById("admin-login-form");
+      const contactForm = document.getElementById("contact-form");
+      const chatbotModal = document.getElementById("chatbot-modal");
+      const chatbotInput = document.getElementById("chatbot-input");
+      const chatbotMessages = document.getElementById("chatbot-messages");
+      const payrollBtn = document.getElementById("run-payroll-btn");
+      const paymentModal = document.getElementById("payment-modal");
+
+      // --- NAVIGATION ---
+
+      /**
+       * Main navigation function for the SPA.
+       * Hides all pages and shows the one with the matching ID.
+       * @param {string} pageId - The ID of the page-content div to show.
+       */
+      function navigateTo(pageId) {
+        allPages.forEach((page) => {
+          page.style.display = "none";
+        });
+
+        const targetPage = document.getElementById(pageId);
+        if (targetPage) {
+          targetPage.style.display = "block";
+          state.currentPage = pageId;
+        } else {
+          console.error(`Page not found: ${pageId}`);
+          document.getElementById("page-home").style.display = "block";
+        }
+        window.scrollTo(0, 0); // Scroll to top on page change
+      }
+
+      // --- MOBILE MENU ---
+      function toggleMobileMenu() {
+        mobileMenu.classList.toggle("hidden");
+      }
+
+      // --- LOGIN & UI UPDATES ---
+
+      /**
+       * Updates the navigation bar based on login state
+       */
+      function updateNavUI() {
+        if (state.isLoggedIn) {
+          navLoginBtn.classList.add("hidden");
+          mobileNavLoginBtn.classList.add("hidden");
+
+          // Show dashboard button based on admin or regular user
+          if (state.isAdmin) {
+            navDashboardBtn.classList.remove("hidden");
+            mobileNavDashboardBtn.classList.remove("hidden");
+          } else {
+            // Could add a "User Profile" button here
+            navLoginBtn.classList.remove("hidden");
+            navLoginBtn.innerText = "My Profile";
+            navLoginBtn.onclick = () =>
+              alert("User Profile Page (Not Implemented)");
+          }
+        } else {
+          navLoginBtn.classList.remove("hidden");
+          navDashboardBtn.classList.add("hidden");
+          mobileNavLoginBtn.classList.remove("hidden");
+          mobileNavDashboardBtn.classList.add("hidden");
+        }
+      }
+
+      /**
+       * Simulates a successful login
+       * @param {boolean} isAdmin - Whether the login is for an admin
+       */
+      function handleLogin(isAdmin = false) {
+        state.isLoggedIn = true;
+        state.isAdmin = isAdmin;
+        updateNavUI();
+
+        const msgEl = document.getElementById("login-message");
+        msgEl.innerText = "Login Successful! Redirecting...";
+        msgEl.style.color = "lightgreen";
+
+        setTimeout(() => {
+          msgEl.innerText = "";
+          navigateTo(isAdmin ? "page-dashboard" : "page-home");
+        }, 1500);
+      }
+
+      // --- REGISTRATION FORM LOGIC ---
+      function nextStep(step) {
+        document
+          .getElementById(`step-${state.currentRegStep}`)
+          .classList.remove("active");
+        state.currentRegStep = step;
+        document
+          .getElementById(`step-${state.currentRegStep}`)
+          .classList.add("active");
+      }
+
+      function prevStep(step) {
+        document
+          .getElementById(`step-${state.currentRegStep}`)
+          .classList.remove("active");
+        state.currentRegStep = step;
+        document
+          .getElementById(`step-${state.currentRegStep}`)
+          .classList.add("active");
+      }
+
+      function handleRegistration(event) {
+        event.preventDefault();
+        const msgEl = document.getElementById("reg-message");
+        msgEl.innerText =
+          "Processing... Creating Virtual ID and saving to Blockchain...";
+        msgEl.style.color = "lightyellow";
+
+        setTimeout(() => {
+          msgEl.innerText =
+            "Registration Successful! Your Virtual ID Card is generated. Please login.";
+          msgEl.style.color = "lightgreen";
+          regForm.reset();
+          nextStep(1); // Reset to first step
+          switchLoginTab(null, "tab-company-login", true); // Move to login tab
+        }, 2500);
+      }
+
+      // --- LOGIN TAB LOGIC ---
+      function switchLoginTab(event, tabId, force = false) {
+        if (event) event.preventDefault();
+
+        // Update tab buttons
+        document.querySelectorAll(".login-tab").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+        // Find the button that controls this tabId
+        const activeButton = document.querySelector(
+          `.login-tab[onclick*="'${tabId}'"]`
+        );
+        if (activeButton) {
+          activeButton.classList.add("active");
+        }
+
+        // Update tab content
+        document.querySelectorAll(".login-tab-content").forEach((content) => {
+          content.classList.remove("active");
+        });
+        document.getElementById(tabId).classList.add("active");
+        state.currentLoginTab = tabId;
+      }
+
+      // --- CHATBOT ---
+      function toggleChatbot() {
+        chatbotModal.classList.toggle("hidden");
+        chatbotModal.classList.toggle("flex");
+      }
+
+      function sendChatMessage() {
+        const msg = chatbotInput.value.trim();
+        if (msg === "") return;
+
+        // Add user message
+        const userMsgEl = document.createElement("div");
+        userMsgEl.className =
+          "p-2 bg-gray-700 rounded-lg max-w-xs text-white self-end ml-auto";
+        userMsgEl.innerText = msg;
+        chatbotMessages.appendChild(userMsgEl);
+
+        chatbotInput.value = "";
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+        // Simulate AI response
+        setTimeout(() => {
+          const aiMsgEl = document.createElement("div");
+          aiMsgEl.className =
+            "p-2 bg-indigo-600 rounded-lg max-w-xs text-white";
+          aiMsgEl.innerText =
+            "As a simulated NLP model, I've processed your request: '" +
+            msg +
+            "'. This demonstrates the AI integration. For a real answer, our full LLM would be queried.";
+          chatbotMessages.appendChild(aiMsgEl);
+          chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }, 1000);
+      }
+
+      // --- DASHBOARD SIMULATIONS ---
+      function runPayroll() {
+        const btn = document.getElementById("run-payroll-btn");
+        const status = document.getElementById("payroll-status");
+
+        btn.disabled = true;
+        btn.innerText = "Processing Payroll...";
+        status.innerText =
+          "Calculating salaries, GST, and taxes... Contacting VPK Pay API...";
+        status.style.color = "lightyellow";
+
+        setTimeout(() => {
+          status.innerText =
+            "Payroll complete! ₹ 2.26 Crore disbursed to 330 employees via The ChitraHarsha VPK Pay.";
+          status.style.color = "lightgreen";
+          btn.disabled = false;
+          btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 12v.01M12 12c-1.657 0-3-.895-3-2s1.343-2 3-2m0 8c1.11 0 2.08-.402 2.599-1M12 12v5m0-5c-1.11 0-2.08-.402-2.599-1M12 12c.624 0 1.18.17 1.639.44M18 10a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> Run Automated Payroll`;
+        }, 3000);
+      }
+
+      // --- PAYMENT MODAL ---
+      function showPaymentOptions() {
+        paymentModal.style.display = "flex";
+      }
+      function hidePaymentOptions() {
+        paymentModal.style.display = "none";
+      }
+
+      // --- EVENT LISTENERS ---
+
+      // Make navigation functions global
+      window.navigateTo = navigateTo;
+      window.toggleMobileMenu = toggleMobileMenu;
+      window.nextStep = nextStep;
+      window.prevStep = prevStep;
+      window.switchLoginTab = switchLoginTab;
+      window.toggleChatbot = toggleChatbot;
+      window.sendChatMessage = sendChatMessage;
+      window.showPaymentOptions = showPaymentOptions;
+      window.hidePaymentOptions = hidePaymentOptions;
+
+      // Mobile menu toggle
+      mobileMenuBtn.addEventListener("click", toggleMobileMenu);
+
+      // Form Submissions (Simulated)
+      regForm.addEventListener("submit", handleRegistration);
+      companyLoginForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        handleLogin(false);
+      });
+      adminLoginForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        handleLogin(true); // Grant admin access
+      });
+      contactForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const status = document.getElementById("contact-message-status");
+        status.innerText = "Sending message...";
+        setTimeout(() => {
+          status.innerText = "Message Sent! We will get back to you shortly.";
+          contactForm.reset();
+        }, 1500);
+      });
+
+      // Dashboard buttons
+      if (payrollBtn) payrollBtn.addEventListener("click", runPayroll);
+
+      // --- INITIALIZATION ---
+      function init() {
+        // Show the home page by default
+        navigateTo("page-home");
+
+        // Activate the first login tab by default
+        switchLoginTab(null, "tab-register", true);
+
+        // Show auto-updater toast simulation
+        setTimeout(() => {
+          const toast = document.getElementById("auto-updater-toast");
+          toast.classList.remove("hidden");
+          setTimeout(() => {
+            toast.classList.add("hidden");
+          }, 4000);
+        }, 2000);
+      }
+
+      // Run init on load
+      init();
+    </script>
+  </body>
+</html>
