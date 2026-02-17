@@ -1,0 +1,24 @@
+# Robots.txt for ChitraHarsha VisvaDarsana
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+
+# Sitemap location
+Sitemap: https://chitraharsha-visvadarsana.com/sitemap.xml
+
+# Crawl delay (be polite)
+Crawl-delay: 1
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /

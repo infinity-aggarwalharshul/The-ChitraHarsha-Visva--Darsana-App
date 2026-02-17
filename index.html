@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChitraHarsha ViśvaDarśana - Prototype</title>
+    <title>The ChitraHarsha ViśvaDarśana v7.5.0 - Global Horizon AI</title>
 
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -106,27 +106,14 @@
   </head>
 
   <body class="bg-gray-950 text-gray-200">
-    <!-- Auto-Updater Toast -->
+    <!-- Auto-Updater Toast (v7.5.0 Glassmorphism) -->
     <div
       id="auto-updater-toast"
-      class="fixed top-5 right-5 bg-green-600 text-white p-3 rounded-lg shadow-lg z-50 hidden animate-pulse"
+      class="fixed top-5 right-5 bg-indigo-900/40 backdrop-blur-xl border border-white/10 text-white p-4 rounded-2xl shadow-2xl z-50 hidden animate-pulse"
     >
-      <div class="flex items-center gap-2">
-        <svg
-          class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m-15.357-2a8.001 8.001 0 0015.357 2m0 0H15"
-          ></path>
-        </svg>
-        <span>Auto-Update: Platform v1.2.2 installed.</span>
+      <div class="flex items-center gap-3">
+        <div class="w-2 h-2 bg-cyan-400 rounded-full animate-ping"></div>
+        <span class="text-sm font-semibold tracking-wide">Horizon v7.5.0: Production Core Active.</span>
       </div>
     </div>
 
@@ -208,6 +195,7 @@
           class="text-2xl font-bold gradient-text"
         >
           ChitraHarsha ViśvaDarśana
+          <span class="text-[10px] bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30 ml-2">v7.5.0 HORIZON</span>
         </a>
 
         <!-- Desktop Nav -->
@@ -248,6 +236,28 @@
             class="text-gray-300 hover:text-indigo-400"
             >Contact Us</a
           >
+          
+          <!-- v7.5.0 Health Dashboard -->
+          <div class="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+            <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+            <span class="text-[10px] font-bold text-green-400 uppercase tracking-tighter">System Health: 98%</span>
+          </div>
+
+          <!-- Language Selector -->
+          <div class="relative group mr-4">
+            <button class="flex items-center gap-1 text-gray-400 hover:text-white transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
+              <span id="current-lang">English</span>
+            </button>
+            <div class="absolute right-0 w-32 bg-gray-900 border border-gray-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              <div class="py-1">
+                <button onclick="changeLanguage('en')" class="block w-full text-left px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white">English</button>
+                <button onclick="changeLanguage('hi')" class="block w-full text-left px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white">हिन्दी (Hindi)</button>
+                <button onclick="changeLanguage('es')" class="block w-full text-left px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white">Español</button>
+                <button onclick="changeLanguage('fr')" class="block w-full text-left px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white">Français</button>
+              </div>
+            </div>
+          </div>
 
           <!-- Dynamic Login/Dashboard Button -->
           <a
@@ -861,6 +871,27 @@
               </form>
             </div>
 
+            <!-- OTP Verification Modal (v7.0.0) -->
+            <div id="otp-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+              <div class="bg-gray-900 border border-indigo-500/30 p-8 rounded-2xl shadow-glow-purple max-w-sm w-full text-center">
+                <div class="w-16 h-16 bg-indigo-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Verify OTP</h3>
+                <p class="text-gray-400 text-sm mb-6">Enter the 6-digit code sent to <span id="otp-dest" class="text-indigo-400 font-mono">ha***@gmail.com</span></p>
+                <div class="flex justify-between gap-2 mb-6">
+                  <input type="text" maxlength="1" class="w-10 h-12 bg-gray-800 border border-gray-700 rounded-lg text-center text-xl font-bold focus:border-indigo-500 outline-none">
+                  <input type="text" maxlength="1" class="w-10 h-12 bg-gray-800 border border-gray-700 rounded-lg text-center text-xl font-bold focus:border-indigo-500 outline-none">
+                  <input type="text" maxlength="1" class="w-10 h-12 bg-gray-800 border border-gray-700 rounded-lg text-center text-xl font-bold focus:border-indigo-500 outline-none">
+                  <input type="text" maxlength="1" class="w-10 h-12 bg-gray-800 border border-gray-700 rounded-lg text-center text-xl font-bold focus:border-indigo-500 outline-none">
+                  <input type="text" maxlength="1" class="w-10 h-12 bg-gray-800 border border-gray-700 rounded-lg text-center text-xl font-bold focus:border-indigo-500 outline-none">
+                  <input type="text" maxlength="1" class="w-10 h-12 bg-gray-800 border border-gray-700 rounded-lg text-center text-xl font-bold focus:border-indigo-500 outline-none">
+                </div>
+                <button onclick="verifyOTP()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold btn-glow mb-4">Verify & Authenticate</button>
+                <p class="text-xs text-gray-500">Didn't receive code? <button class="text-indigo-400 hover:underline">Resend in 1:59</button></p>
+              </div>
+            </div>
+
             <!-- Generic Login Message -->
             <p id="login-message" class="text-center text-green-400 mt-4"></p>
           </div>
@@ -954,6 +985,30 @@
                   <div>
                     <p class="text-sm text-gray-400">Annual Budget</p>
                     <p class="text-2xl font-bold">₹ 27.12 Crore</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- NEW (v7.0.0): Cloud Storage Quota -->
+              <div class="bg-gray-900 p-6 rounded-lg shadow-glow-indigo/30 border border-indigo-500/20">
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-xl font-semibold text-indigo-400 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                    Enterprise Cloud Storage Quota
+                  </h3>
+                  <span class="text-xs font-mono text-gray-500 bg-gray-800 px-2 py-1 rounded">UNLIMITED PLAN</span>
+                </div>
+                <div class="space-y-4">
+                  <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">Used: 12.4 GB</span>
+                    <span class="text-gray-400">Available: 487.6 GB</span>
+                  </div>
+                  <div class="w-full bg-gray-800 rounded-full h-2">
+                    <div class="bg-indigo-500 h-2 rounded-full shadow-glow-indigo" style="width: 2.5%"></div>
+                  </div>
+                  <div class="flex gap-4">
+                    <button class="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-2 rounded-lg text-sm transition-colors border border-indigo-500/20">Manage Files</button>
+                    <button class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg text-sm font-semibold transition-all">Upload New File</button>
                   </div>
                 </div>
               </div>
@@ -1952,7 +2007,7 @@
           >
             <p><strong>Last Updated: [Date]</strong></p>
             <p>
-              The ChitraHarshaVPK Ventures Pvt Ltd ("we," "us," or "our")
+              The ChitraHarshaVPK Ventures ("we," "us," or "our")
               operates the ChitraHarsha ViśvaDarśana platform. This policy
               outlines our practices for collecting, using, and protecting your
               personal data in compliance with Indian law.
@@ -2214,7 +2269,7 @@
           <div>
             <h5 class="font-semibold text-gray-300 mb-4">Get in Touch</h5>
             <p class="text-gray-400 text-sm">
-              The ChitraHarshaVPK Ventures Pvt Ltd<br />
+              The ChitraHarsha VPK Ventures<br />
               contact@chitraharshavpk.in
             </p>
           </div>
@@ -2223,7 +2278,7 @@
           class="border-t border-gray-800 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center text-gray-500 text-sm"
         >
           <p>
-            &copy; 2025 The ChitraHarshaVPK Ventures Pvt Ltd. All Rights
+            &copy; 2025 The ChitraHarsha VPK Ventures. All Rights
             Reserved. Built as a "Made in India" initiative.
           </p>
           <button
@@ -2259,7 +2314,57 @@
         isAdmin: false, // Simulates admin login
         currentRegStep: 1, // For multi-step form
         currentLoginTab: "tab-register", // For login tabs
+        currentLang: "en",
+        otpPurpose: null,
+        otpTarget: null
       };
+
+      // --- LANGUAGE LOGIC (v7.0.0) ---
+      const translations = {
+        en: { name: "English", welcome: "Welcome to ViśvaDarśana" },
+        hi: { name: "हिन्दी", welcome: "विश्वदर्शन में आपका स्वागत है" },
+        es: { name: "Español", welcome: "Bienvenido a ViśvaDarśana" },
+        fr: { name: "Français", welcome: "Bienvenue sur ViśvaDarśana" }
+      };
+
+      function changeLanguage(lang) {
+        state.currentLang = lang;
+        document.getElementById('current-lang').innerText = translations[lang].name;
+        console.log(`🌐 Language changed to: ${lang}`);
+        // In a real app, this would trigger i18n updates across the UI
+        alert(`Language changed to ${translations[lang].name}. UI will update dynamically.`);
+      }
+
+      // --- OTP LOGIC (v7.0.0) ---
+      function showOTPModal(target, purpose) {
+        state.otpTarget = target;
+        state.otpPurpose = purpose;
+        document.getElementById('otp-dest').innerText = maskTarget(target);
+        document.getElementById('otp-modal').classList.remove('hidden');
+      }
+
+      function maskTarget(target) {
+        if (target.includes('@')) {
+          const [user, domain] = target.split('@');
+          return `${user.substring(0, 2)}***@${domain}`;
+        }
+        return `******${target.slice(-4)}`;
+      }
+
+      function verifyOTP() {
+        const modal = document.getElementById('otp-modal');
+        const msgEl = document.getElementById('login-message');
+        
+        // Simulate verification
+        console.log(`🔐 Verifying OTP for ${state.otpTarget}...`);
+        
+        modal.classList.add('hidden');
+        if (state.otpPurpose === 'registration') {
+          handleRegistrationSuccess();
+        } else {
+          handleLoginSuccess(state.isAdmin);
+        }
+      }
 
       // --- DOM ELEMENTS ---
       const allPages = document.querySelectorAll(".page-content");
@@ -2355,12 +2460,21 @@
        * @param {boolean} isAdmin - Whether the login is for an admin
        */
       function handleLogin(isAdmin = false) {
-        state.isLoggedIn = true;
         state.isAdmin = isAdmin;
+        const username = isAdmin ? 
+          document.getElementById('admin-username').value : 
+          document.getElementById('company-username').value;
+        
+        // Show OTP Modal first in v7.0.0
+        showOTPModal(username, 'login');
+      }
+
+      function handleLoginSuccess(isAdmin = false) {
+        state.isLoggedIn = true;
         updateNavUI();
 
         const msgEl = document.getElementById("login-message");
-        msgEl.innerText = "Login Successful! Redirecting...";
+        msgEl.innerText = "OTP Verified! Login Successful.";
         msgEl.style.color = "lightgreen";
 
         setTimeout(() => {
@@ -2392,19 +2506,24 @@
 
       function handleRegistration(event) {
         event.preventDefault();
+        const username = document.getElementById('reg-username').value;
+        showOTPModal(username, 'registration');
+      }
+
+      function handleRegistrationSuccess() {
         const msgEl = document.getElementById("reg-message");
         msgEl.innerText =
-          "Processing... Creating Virtual ID and saving to Blockchain...";
+          "OTP Verified! Creating Virtual ID Card...";
         msgEl.style.color = "lightyellow";
 
         setTimeout(() => {
           msgEl.innerText =
-            "Registration Successful! Your Virtual ID Card is generated. Please login.";
+            "Registration Successful! Welcome to ViśvaDarśana v7.0.0.";
           msgEl.style.color = "lightgreen";
           regForm.reset();
           nextStep(1); // Reset to first step
           switchLoginTab(null, "tab-company-login", true); // Move to login tab
-        }, 2500);
+        }, 2000);
       }
 
       // --- LOGIN TAB LOGIC ---
@@ -2505,6 +2624,8 @@
       window.sendChatMessage = sendChatMessage;
       window.showPaymentOptions = showPaymentOptions;
       window.hidePaymentOptions = hidePaymentOptions;
+      window.changeLanguage = changeLanguage;
+      window.verifyOTP = verifyOTP;
 
       // Mobile menu toggle
       mobileMenuBtn.addEventListener("click", toggleMobileMenu);
